@@ -1,6 +1,6 @@
 # Schrodinet
 
-Solving simple quantum problems using QMC and RBF network
+Solving the Schrodinger equations in 1, 2 or 3D  using QMC and RBF neural networks
 
 ## Harmonic Oscillator in 1D
 

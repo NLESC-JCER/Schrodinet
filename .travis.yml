@@ -26,7 +26,7 @@ install:
 
 # command to run tests
 script:
-  - pytest --cov=deepqmc tests --cov-report xml:coverage.xml
+  - pytest --cov=schrodinet tests --cov-report xml:coverage.xml
   - mv coverage.xml ../
   - mv .coverage ../
   - cd ../

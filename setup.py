@@ -6,29 +6,29 @@ from setuptools import (find_packages, setup)
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-# To update the package version number, edit DeepQMC/__version__.py
+# To update the package version number, edit Schrodinet/__version__.py
 version = {}
-with open(os.path.join(here, 'deepqmc', '__version__.py')) as f:
+with open(os.path.join(here, 'schrodinet', '__version__.py')) as f:
     exec(f.read(), version)
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
 setup(
-    name='deepqmc',
+    name='schrodinet',
     version=version['__version__'],
-    description="Deep Learning for Quantum Monte Carlo Simulations",
+    description="Solving the Schrodinger equation using RBF Neural Net",
     long_description=readme + '\n\n',
     long_description_content_type='text/markdown',
     author=["Nicolas Renaud", "Felipe Zapata"],
     author_email='n.renaud@esciencecenter.nl',
-    url='https://github.com/NLESC-JCER/DeepQMC',
+    url='https://github.com/NLESC-JCER/Schrodinet',
     packages=find_packages(),
-    package_dir={'deepqmc': 'deepqmc'},
+    package_dir={'schrodinet': 'schrodinet'},
     include_package_data=True,
     license="Apache Software License 2.0",
     zip_safe=False,
-    keywords='deepqmc',
+    keywords='schrodinet',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
@@ -40,7 +40,7 @@ setup(
     ],
     test_suite='tests',
     install_requires=['autograd', 'cython', 'matplotlib', 'numpy', 'pyyaml>=5.1',
-                      'schema', 'scipy', 'tqdm','torch','basis_set_exchange','pyscf','mendeleev'],
+                      'schema', 'scipy', 'tqdm', 'torch', 'basis_set_exchange', 'pyscf', 'mendeleev'],
     extras_require={
         'dev': ['prospector[with_pyroma]', 'yapf', 'isort'],
         'doc': ['recommonmark', 'sphinx', 'sphinx_rtd_theme'],
