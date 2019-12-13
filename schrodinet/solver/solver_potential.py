@@ -3,8 +3,8 @@ import numpy as np
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from deepqmc.solver.solver_base import SolverBase
-from deepqmc.solver.torch_utils import DataSet, Loss, ZeroOneClipper
+from schrodinet.solver.solver_base import SolverBase
+from schrodinet.solver.torch_utils import DataSet, Loss, ZeroOneClipper
 
 
 class SolverPotential(SolverBase):

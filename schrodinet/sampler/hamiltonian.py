@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 from torch.autograd import Variable
-from deepqmc.sampler.sampler_base import SamplerBase
+from schrodinet.sampler.sampler_base import SamplerBase
 
 
 class Hamiltonian(SamplerBase):

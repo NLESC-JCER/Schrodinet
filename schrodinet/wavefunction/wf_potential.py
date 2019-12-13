@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from deepqmc.wavefunction.wf_base import WaveFunction
-from deepqmc.wavefunction.rbf import RBF_Gaussian as RBF
+from schrodinet.wavefunction.wf_base import WaveFunction
+from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
 
 
 class Potential(WaveFunction):

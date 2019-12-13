@@ -1,4 +1,4 @@
-from deepqmc.sampler.walkers import Walkers
+from schrodinet.sampler.walkers import Walkers
 
 
 class SamplerBase(object):

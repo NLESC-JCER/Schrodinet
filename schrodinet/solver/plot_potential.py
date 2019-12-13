@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from skimage import measure
 
-from deepqmc.solver.plot_data import plot_observable
+from schrodinet.solver.plot_data import plot_observable
 
 
 def regular_mesh_2d(xmin=-2, xmax=2, ymin=-2., ymax=2, nx=5, ny=5):
