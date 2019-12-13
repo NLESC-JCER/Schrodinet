@@ -1,10 +1,10 @@
 import torch
 from torch import optim, nn
 
-from deepqmc.sampler.metropolis import Metropolis
-from deepqmc.sampler.hamiltonian import Hamiltonian
-from deepqmc.wavefunction.wf_potential import Potential
-from deepqmc.solver.solver_potential import SolverPotential
+from schrodinet.sampler.metropolis import Metropolis
+from schrodinet.sampler.hamiltonian import Hamiltonian
+from schrodinet.wavefunction.wf_potential import Potential
+from schrodinet.solver.solver_potential import SolverPotential
 
 import numpy as np
 import unittest

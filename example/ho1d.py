@@ -1,10 +1,10 @@
 import torch
 from torch import optim
 
-from deepqmc.sampler.metropolis import Metropolis
-from deepqmc.wavefunction.wf_potential import Potential
-from deepqmc.solver.solver_potential import SolverPotential
-from deepqmc.solver.plot_potential import plot_results_1d, plotter1d
+from schrodinet.sampler.metropolis import Metropolis
+from schrodinet.wavefunction.wf_potential import Potential
+from schrodinet.solver.solver_potential import SolverPotential
+from schrodinet.solver.plot_potential import plot_results_1d, plotter1d
 
 
 def pot_func(pos):
