@@ -1,5 +1,7 @@
 # Schrodinet
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/38b540ecc5464901a5a48a9be037c924)](https://app.codacy.com/gh/NLESC-JCER/Schrodinet?utm_source=github.com&utm_medium=referral&utm_content=NLESC-JCER/Schrodinet&utm_campaign=Badge_Grade_Dashboard)
+
 Solving the Schrodinger equations in 1, 2 or 3D  using QMC and RBF neural networks
 
 ## Harmonic Oscillator in 1D
