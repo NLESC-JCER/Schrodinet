@@ -1,4 +1,4 @@
-from deepqmc.sampler.sampler_base import SamplerBase
+from schrodinet.sampler.sampler_base import SamplerBase
 from tqdm import tqdm
 import torch
 
