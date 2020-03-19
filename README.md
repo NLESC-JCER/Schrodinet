@@ -1,6 +1,6 @@
 # Schrodinet
 
-[![Build Status](https://travis-ci.com/NLESC-JCER/Schrodinet.svg?branch=master)]
+![Build Status](https://travis-ci.com/NLESC-JCER/Schrodinet.svg?branch=master)
 
 Solving the Schrodinger equations in 1, 2 or 3D  using quantum monte carlo and radial basis function neural network to encode the wavefunction.
 
