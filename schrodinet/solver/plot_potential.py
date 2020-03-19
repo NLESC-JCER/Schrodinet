@@ -5,7 +5,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from skimage import measure
+try:
+    from skimage import measure
+except ImportError:
+    print('skimage  required for 3d plot')
 
 from schrodinet.solver.plot_data import plot_observable
 
