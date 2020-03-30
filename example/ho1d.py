@@ -21,7 +21,7 @@ def ho1d_sol(pos):
 domain, ncenter = {'min': -5., 'max': 5.}, 11
 
 # wavefunction
-wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=0.5)
+wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=1.)
 
 # sampler
 sampler = Metropolis(nwalkers=1000, nstep=200,
@@ -40,7 +40,7 @@ solver = SolverPotential(wf=wf, sampler=sampler,
 
 # train the wave function
 #plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)  # , save='./image/')
-solver.run(300, loss='energy-manual', plot=None, save='model.pth')
+solver.run(300, loss='energy', plot=None, save='model.pth')
 
 # plot the final wave function
 plot_results_1d(solver, domain, 100, ho1d_sol, e0=0.5, load='model.pth')

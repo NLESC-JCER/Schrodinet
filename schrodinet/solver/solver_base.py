@@ -47,7 +47,7 @@ class SolverBase(object):
             self.wf.pdf, ntherm=ntherm, ndecor=ndecor,
             with_tqdm=with_tqdm, pos=pos)
         pos.requires_grad = True
-        return pos.float()
+        return pos
 
     def get_observable(self, obs_dict, pos, eloc=None, ibatch=None, **kwargs):
         '''compute all the required observable.

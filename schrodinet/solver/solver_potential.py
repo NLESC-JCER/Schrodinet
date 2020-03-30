@@ -82,7 +82,7 @@ class SolverPotential(SolverBase):
             cumulative_loss = 0
             for ibatch, data in enumerate(self.dataloader):
 
-                lpos = Variable(data).float()
+                lpos = Variable(data)
                 lpos.requires_grad = True
 
                 loss, eloc = self.evaluate_gradient(lpos, self.loss.method)
@@ -161,10 +161,6 @@ class SolverPotential(SolverBase):
         # compute the loss
         loss, eloc = self.loss(lpos)
 
-        # add mo orthogonalization if required
-        if self.wf.mo.weight.requires_grad and self.ortho_mo:
-            loss += self.ortho_loss(self.wf.mo.weight)
-
         # compute local gradients
         self.opt.zero_grad()
         loss.backward()
@@ -188,8 +184,8 @@ class SolverPotential(SolverBase):
         '''
 
         # compute local energy and wf values
-        eloc = self.wf.local_energy(lpos)
         psi = self.wf(lpos)
+        eloc = self.wf.local_energy(lpos, wf=psi)
         norm = 1./len(psi)
 
         # evaluate the prefactor of the grads

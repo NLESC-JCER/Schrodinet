@@ -140,10 +140,12 @@ class WaveFunction(nn.Module):
 
         return -0.5*out.view(-1, 1)
 
-    def local_energy(self, pos):
+    def local_energy(self, pos, wf=None):
         ''' local energy of the sampling points.'''
 
-        wf = self.forward(pos)
+        if wf is None:
+            wf = self.forward(pos)
+
         ke = self.kinetic_energy(pos, out=wf)
 
         return ke/wf \
