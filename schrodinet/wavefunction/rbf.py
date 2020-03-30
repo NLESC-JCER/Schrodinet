@@ -250,7 +250,10 @@ class RBF_Gaussian(nn.Module):
         X = (delta**2).sum(2)
 
         # divide by the determinant of the cov mat
-        X = torch.exp(-X/self.sigma)
+        X = torch.exp(-X/ (0.5*self.sigma**2))
+
+        if torch.isnan(X).any():
+            print(X)
 
         return X.view(-1, self.ncenter)
 

@@ -57,7 +57,7 @@ class Metropolis(SamplerBase):
             for istep in rng:
 
                 # new positions
-                Xn = self.move(pdf)
+                Xn = self.move()
 
                 # new function
                 fxn = pdf(Xn)
@@ -68,7 +68,7 @@ class Metropolis(SamplerBase):
                 index = self._accept(df)
 
                 # acceptance rate
-                rate += index.byte().sum().float()/self.nwalkers
+                rate += index.byte().sum().float() / self.nwalkers
 
                 # update position/function value
                 self.walkers.pos[index, :] = Xn[index, :]
@@ -85,7 +85,7 @@ class Metropolis(SamplerBase):
 
         return torch.cat(pos)
 
-    def move(self, pdf):
+    def move(self):
         """Move electron one at a time in a vectorized way.
 
         Args:

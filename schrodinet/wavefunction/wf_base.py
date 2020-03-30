@@ -140,10 +140,12 @@ class WaveFunction(nn.Module):
 
         return -0.5*out.view(-1, 1)
 
-    def local_energy(self, pos):
+    def local_energy(self, pos, wf=None):
         ''' local energy of the sampling points.'''
 
-        wf = self.forward(pos)
+        if wf is None:
+            wf = self.forward(pos)
+
         ke = self.kinetic_energy(pos, out=wf)
 
         return ke/wf \
@@ -159,9 +161,20 @@ class WaveFunction(nn.Module):
         '''Variance of the energy at the sampling points.'''
         return torch.var(self.local_energy(pos))
 
+    def sampling_error(self, eloc):
+        '''Compute the statistical uncertainty.
+        Assuming the samples are uncorrelated.'''
+        Npts = eloc.shape[0]
+        return torch.sqrt(eloc.var()/Npts)
+
     def _energy_variance(self, pos):
         el = self.local_energy(pos)
         return torch.mean(el), torch.var(el)
+
+    def _energy_variance_error(self, pos):
+        '''Return energy variance and sampling error.'''
+        el = self.local_energy(pos)
+        return torch.mean(el), torch.var(el), self.sampling_error(el)
 
     def pdf(self, pos):
         '''density of the wave function.'''

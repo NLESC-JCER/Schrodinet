@@ -1,5 +1,6 @@
 import numpy as np
 
+import torch
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
@@ -16,8 +17,10 @@ class SolverPotential(SolverBase):
         self.task = "wf_opt"
 
         # esampling
-        self.resampling(ntherm=-1, resample=100,
-                        resample_from_last=True, resample_every=1)
+        self.resampling(ntherm=-1, 
+                        resample=100,
+                        resample_from_last=True, 
+                        resample_every=1)
 
         # observalbe
         self.observable(['local_energy'])
@@ -77,16 +80,13 @@ class SolverPotential(SolverBase):
             print('epoch %d' % n)
 
             cumulative_loss = 0
-            for data in self.dataloader:
+            for ibatch, data in enumerate(self.dataloader):
 
-                lpos = Variable(data).float()
+                lpos = Variable(data)
                 lpos.requires_grad = True
 
-                loss = self.loss(lpos)
+                loss, eloc = self.evaluate_gradient(lpos, self.loss.method)
                 cumulative_loss += loss
-
-                self.opt.zero_grad()
-                loss.backward()
                 self.opt.step()
 
                 if self.wf.fc.clip:
@@ -100,10 +100,9 @@ class SolverPotential(SolverBase):
                     n, cumulative_loss, self.save_model)
 
             # get the observalbes
-            self.get_observable(self.obs_dict, pos)
-            print('loss %f' % (cumulative_loss))
-            print('variance : %f' % np.var(self.obs_dict['local_energy'][-1]))
-            print('energy : %f' % np.mean(self.obs_dict['local_energy'][-1]))
+            self.get_observable(self.obs_dict, pos, eloc, ibatch=ibatch)
+            self.print_observable(cumulative_loss)
+            
             print('----------------------------------------')
 
             # resample the data
@@ -121,3 +120,80 @@ class SolverPotential(SolverBase):
 
         # restore the sampler number of step
         self.sampler.nstep = _nstep_save
+
+    def evaluate_gradient(self, lpos, loss):
+        """Evaluate the gradient
+
+        Arguments:
+            grad {str} -- method of the gradient (auto, manual)
+            lpos {torch.tensor} -- positions of the walkers
+
+
+        Returns:
+            tuple -- (loss, local energy)
+        """
+        
+        if loss in ['variance','energy']:
+            loss, eloc = self._evaluate_grad_auto(lpos)
+
+        elif loss == 'energy-manual':
+            loss, eloc = self._evaluate_grad_manual(lpos)
+            
+        else:
+            raise ValueError('Error in gradient method')
+
+        if torch.isnan(loss):
+            raise ValueError("Nans detected in the loss")
+
+        return loss, eloc
+
+    def _evaluate_grad_auto(self, lpos):
+        """Evaluate the gradient using automatic diff of the required loss.
+
+        Arguments:
+            lpos {torch.tensor} -- positions of the walkers
+
+        Returns:
+            tuple -- (loss, local energy)
+        """
+
+        # compute the loss
+        loss, eloc = self.loss(lpos)
+
+        # compute local gradients
+        self.opt.zero_grad()
+        loss.backward()
+
+        return loss, eloc
+
+    def _evaluate_grad_manual(self, lpos):
+        """Evaluate the gradient using a low variance method
+
+        Arguments:
+            lpos {torch.tensor} -- positions of the walkers
+
+        Returns:
+            tuple -- (loss, local energy)
+        """
+
+        ''' Get the gradient of the total energy
+        dE/dk = < (dpsi/dk)/psi (E_L - <E_L >) >
+        '''
+
+        # compute local energy and wf values
+        psi = self.wf(lpos)
+        eloc = self.wf.local_energy(lpos, wf=psi)
+        norm = 1./len(psi)
+
+        # evaluate the prefactor of the grads
+        weight = eloc.clone()
+        weight -= torch.mean(eloc)
+        weight /= psi
+        weight *= 2.
+        weight *= norm
+
+        # compute the gradients
+        self.opt.zero_grad()
+        psi.backward(weight)
+
+        return torch.mean(eloc), eloc

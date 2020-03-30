@@ -1,7 +1,7 @@
 import torch
 from types import SimpleNamespace
 from tqdm import tqdm
-
+import numpy as np
 
 class SolverBase(object):
 
@@ -22,6 +22,8 @@ class SolverBase(object):
 
     def observable(self, obs):
         '''Create the observalbe we want to track.'''
+
+        # reset the obs
         self.obs_dict = {}
 
         for k in obs:
@@ -33,6 +35,11 @@ class SolverBase(object):
         if self.task == 'geo_opt' and 'geometry' not in self.obs_dict:
             self.obs_dict['geometry'] = []
 
+        for key, p in zip(self.wf.state_dict().keys(), self.wf.parameters()):
+            if p.requires_grad:
+                self.obs_dict[key] = []
+                self.obs_dict[key+'.grad'] = []
+
     def sample(self, ntherm=-1, ndecor=100, with_tqdm=True, pos=None):
         ''' sample the wave function.'''
 
@@ -40,9 +47,9 @@ class SolverBase(object):
             self.wf.pdf, ntherm=ntherm, ndecor=ndecor,
             with_tqdm=with_tqdm, pos=pos)
         pos.requires_grad = True
-        return pos.float()
+        return pos
 
-    def get_observable(self, obs_dict, pos, **kwargs):
+    def get_observable(self, obs_dict, pos, eloc=None, ibatch=None, **kwargs):
         '''compute all the required observable.
 
         Args :
@@ -54,12 +61,58 @@ class SolverBase(object):
 
         for obs in self. obs_dict.keys():
 
+            if obs == 'local_energy' and eloc is not None:
+                data = eloc.cpu().detach().numpy()
+
+                if (ibatch is None) or (ibatch == 0):
+                    self.obs_dict[obs].append(data)
+                else:
+                    self.obs_dict[obs][-1] = np.append(
+                        self.obs_dict[obs][-1], data)
+
+            # store variational parameter
+            elif obs in self.wf.state_dict():
+                layer, param = obs.split('.')
+                p = self.wf.__getattr__(layer).__getattr__(param)
+                self.obs_dict[obs].append(p.data.clone().numpy())
+
+                if p.grad is not None:
+                    self.obs_dict[obs+'.grad'].append(p.grad.clone().numpy())
+                else:
+                    self.obs_dict[obs+'.grad'].append(torch.zeros_like(p.data))
+
             # get the method
-            func = self.wf.__getattribute__(obs)
-            data = func(pos)
-            if isinstance(data, torch.Tensor):
-                data = data.detach().numpy()
-            self.obs_dict[obs].append(data)
+            elif hasattr(self.wf, obs):
+                func = self.wf.__getattribute__(obs)
+                data = func(pos)
+                if isinstance(data, torch.Tensor):
+                    data = data.detach().numpy()
+                self.obs_dict[obs].append(data)
+
+    def print_observable(self, cumulative_loss, verbose=False):
+        """Print the observalbe to csreen
+
+        Arguments:
+            cumulative_loss {float} -- current loss value
+
+        Keyword Arguments:
+            verbose {bool} -- print all the observables (default: {False})
+        """
+
+        for k in self.obs_dict:
+
+            if k == 'local_energy':
+
+                eloc = self.obs_dict['local_energy'][-1]
+                e = np.mean(eloc)
+                v = np.var(eloc)
+                err = np.sqrt(v/len(eloc))
+                print('energy   : %f +/- %f' % (e, err))
+                print('variance : %f' % np.sqrt(v))
+
+            elif verbose:
+                print(k + ' : ', self.obs_dict[k][-1])
+                print('loss %f' % (cumulative_loss))
 
     def get_wf(self, x):
         '''Get the value of the wave functions at x.'''
