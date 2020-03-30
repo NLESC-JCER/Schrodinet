@@ -101,9 +101,8 @@ class SolverPotential(SolverBase):
 
             # get the observalbes
             self.get_observable(self.obs_dict, pos, eloc, ibatch=ibatch)
-            print('loss %f' % (cumulative_loss))
-            print('variance : %f' % np.var(self.obs_dict['local_energy'][-1]))
-            print('energy : %f' % np.mean(self.obs_dict['local_energy'][-1]))
+            self.print_observable(cumulative_loss)
+            
             print('----------------------------------------')
 
             # resample the data
@@ -176,8 +175,6 @@ class SolverPotential(SolverBase):
         Returns:
             tuple -- (loss, local energy)
         """
-
-        
 
         ''' Get the gradient of the total energy
         dE/dk = < (dpsi/dk)/psi (E_L - <E_L >) >

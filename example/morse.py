@@ -22,7 +22,7 @@ def ho1d_sol(pos):
 domain, ncenter = {'min': -3., 'max': 8.}, 51
 
 # wavefunction
-wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=0.5)
+wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=1)
 
 # sampler
 sampler = Metropolis(nwalkers=1000, nstep=500,

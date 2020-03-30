@@ -1,7 +1,7 @@
 import torch
 from types import SimpleNamespace
 from tqdm import tqdm
-
+import numpy as np
 
 class SolverBase(object):
 
@@ -88,6 +88,31 @@ class SolverBase(object):
                 if isinstance(data, torch.Tensor):
                     data = data.detach().numpy()
                 self.obs_dict[obs].append(data)
+
+    def print_observable(self, cumulative_loss, verbose=False):
+        """Print the observalbe to csreen
+
+        Arguments:
+            cumulative_loss {float} -- current loss value
+
+        Keyword Arguments:
+            verbose {bool} -- print all the observables (default: {False})
+        """
+
+        for k in self.obs_dict:
+
+            if k == 'local_energy':
+
+                eloc = self.obs_dict['local_energy'][-1]
+                e = np.mean(eloc)
+                v = np.var(eloc)
+                err = np.sqrt(v/len(eloc))
+                print('energy   : %f +/- %f' % (e, err))
+                print('variance : %f' % np.sqrt(v))
+
+            elif verbose:
+                print(k + ' : ', self.obs_dict[k][-1])
+                print('loss %f' % (cumulative_loss))
 
     def get_wf(self, x):
         '''Get the value of the wave functions at x.'''
