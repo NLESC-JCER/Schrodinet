@@ -252,6 +252,9 @@ class RBF_Gaussian(nn.Module):
         # divide by the determinant of the cov mat
         X = torch.exp(-X/self.sigma)
 
+        if torch.isnan(X).any():
+            print(X)
+
         return X.view(-1, self.ncenter)
 
 ############################################################################

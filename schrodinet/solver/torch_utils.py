@@ -25,16 +25,35 @@ class Loss(nn.Module):
 
     def forward(self, pos):
 
+        eloc = self.wf.local_energy(pos)
+
         if self.method == 'variance':
-            loss = self.wf.variance(pos)
+            loss = torch.var(eloc)
 
         elif self.method == 'energy':
-            loss = self.wf.energy(pos)
+            loss = torch.mean(eloc)
+
+        elif self.method == 'energy-manual':
+
+            loss = torch.mean(eloc)
+            psi = self.wf(pos)
+            norm = 1./len(psi)
+
+            # evaluate the prefactor of the grads
+            weight = eloc.clone()
+            weight -= loss
+            weight /= psi
+            weight *= 2.
+            weight *= norm
+
+            # compute the gradients
+            self.opt.zero_grad()
+            psi.backward(weight)
 
         else:
             raise ValueError('method must be variance, energy')
 
-        return loss
+        return loss, eloc
 
 
 class OrthoReg(nn.Module):

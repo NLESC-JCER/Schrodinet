@@ -24,7 +24,7 @@ domain, ncenter = {'min': -5., 'max': 5.}, 11
 wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=0.5)
 
 # sampler
-sampler = Metropolis(nwalkers=1000, nstep=2000,
+sampler = Metropolis(nwalkers=1000, nstep=200,
                      step_size=1., nelec=wf.nelec,
                      ndim=wf.ndim, init={'min': -5, 'max': 5})
 
@@ -39,8 +39,8 @@ solver = SolverPotential(wf=wf, sampler=sampler,
                          optimizer=opt, scheduler=scheduler)
 
 # train the wave function
-plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)  # , save='./image/')
-solver.run(300, loss='variance', plot=plotter, save='model.pth')
+#plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)  # , save='./image/')
+solver.run(300, loss='energy-manual', plot=None, save='model.pth')
 
 # plot the final wave function
 plot_results_1d(solver, domain, 100, ho1d_sol, e0=0.5, load='model.pth')

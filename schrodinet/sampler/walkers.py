@@ -58,3 +58,4 @@ class Walkers(object):
             torch.tensor(self.init_domain['sigma']))
         pos = multi.sample((self.nwalkers, self.nelec))
         return pos.view(self.nwalkers, self.nelec*self.ndim).float()
+
