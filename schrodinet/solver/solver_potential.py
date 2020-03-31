@@ -26,7 +26,7 @@ class SolverPotential(SolverBase):
         self.observable(['local_energy'])
 
     def run(self, nepoch, batchsize=None, save='model.pth',  loss='variance',
-            plot=None):
+            plot=None, pos = None, with_tqdm=True):
         '''Train the model.
 
         Arg:
@@ -52,7 +52,7 @@ class SolverPotential(SolverBase):
         self.save_model = save
 
         # sample the wave function
-        pos = self.sample(ntherm=self.resample.ntherm)
+        pos = self.sample(pos=pos, ntherm=self.resample.ntherm, with_tqdm=with_tqdm)
 
         # determine the batching mode
         if batchsize is None:
