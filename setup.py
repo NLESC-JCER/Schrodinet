@@ -34,7 +34,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
-        'intended audience :: science/research',
+        'Intended Audience :: Science/Research',
         'Programming Language :: Python :: 3.7',
         'Topic :: Scientific/Engineering :: Chemistry'
     ],
