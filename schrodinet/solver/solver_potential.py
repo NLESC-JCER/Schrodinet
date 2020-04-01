@@ -183,17 +183,21 @@ class SolverPotential(SolverBase):
         # compute local energy and wf values
         psi = self.wf(lpos)
         eloc = self.wf.local_energy(lpos, wf=psi)
-        norm = 1./len(psi)
+
+        # filer the eloc values
+        idx = torch.abs(eloc - eloc.mean()) < 3 * eloc.var()
+        print(eloc[idx].shape)
+        norm = 1./len(psi[idx])
 
         # evaluate the prefactor of the grads
-        weight = eloc.clone()
-        weight -= torch.mean(eloc)
-        weight /= psi
+        weight = eloc[idx].clone()
+        weight -= torch.mean(eloc[idx])
+        weight /= psi[idx]
         weight *= 2.
         weight *= norm
 
         # compute the gradients
         self.opt.zero_grad()
-        psi.backward(weight)
+        psi[idx].backward(weight)
 
         return torch.mean(eloc), eloc

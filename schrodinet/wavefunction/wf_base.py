@@ -152,7 +152,7 @@ class WaveFunction(nn.Module):
             + self.nuclear_potential(pos)  \
             + self.electronic_potential(pos) \
             + self.nuclear_repulsion()
-
+            
     def energy(self, pos):
         '''Total energy for the sampling points.'''
         return torch.mean(self.local_energy(pos))

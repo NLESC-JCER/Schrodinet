@@ -62,8 +62,13 @@ class RBF_Gaussian(nn.Module):
 
 class RBF_Slater(nn.Module):
 
-    def __init__(self, input_features, output_features,
-                 centers, sigma):
+    def __init__(self,
+                 input_features,
+                 output_features,
+                 centers,
+                 opt_centers=True,
+                 sigma=1.0,
+                 opt_sigma=True):
         '''Radial Basis Function Layer in N dimension abd 1 electron
 
         Args:
@@ -82,13 +87,13 @@ class RBF_Slater(nn.Module):
         self.output_features = output_features
 
         # make the centers optmizable or not
-        self.centers = nn.Parameter(centers)
-        self.centers.requires_grad = True
+        self.centers = nn.Parameter(torch.Tensor(centers))
         self.ncenter = len(self.centers)
+        self.centers.requires_grad = opt_centers
 
-        # get the standard deviations
-        self.sigma = nn.Parameter(sigma)
-        self.sigma.requires_grad = True
+        # get the standard deviation
+        self.sigma = nn.Parameter(sigma*torch.ones(self.ncenter))
+        self.sigma.requires_grad = opt_sigma
 
     def forward(self, input):
 

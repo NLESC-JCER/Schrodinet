@@ -2,7 +2,8 @@ import torch
 from torch import nn
 
 from schrodinet.wavefunction.wf_base import WaveFunction
-from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
+#from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
+from schrodinet.wavefunction.rbf import RBF_Slater as RBF
 
 
 class Potential(WaveFunction):
@@ -37,7 +38,7 @@ class Potential(WaveFunction):
         # book the potential function
         self.user_potential = fpot        
 
-        self.kinetic_energy = self.kinetic_energy_analytical
+        #self.kinetic_energy = self.kinetic_energy_analytical
 
     def forward(self, x):
         ''' Compute the value of the wave function.
