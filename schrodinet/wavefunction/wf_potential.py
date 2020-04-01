@@ -37,6 +37,8 @@ class Potential(WaveFunction):
         # book the potential function
         self.user_potential = fpot        
 
+        self.kinetic_energy = self.kinetic_energy_analytical
+
     def forward(self, x):
         ''' Compute the value of the wave function.
         for a multiple conformation of the electrons
@@ -51,11 +53,11 @@ class Potential(WaveFunction):
         x = self.fc(x)
         return x.view(-1, 1)
 
-    # def kinetic_energy_analytical(self,pos,out=None):
-    #     """Fast calculation of the kinetic energy."""
-    #     x = self.rbf(pos,der=2)
-    #     x = self.fc(x)
-    #     return -0.5*x.view(-1,1)
+    def kinetic_energy_analytical(self,pos,out=None):
+        """Fast calculation of the kinetic energy."""
+        x = self.rbf(pos,derivative=2)
+        x = self.fc(x)
+        return -0.5*x.view(-1,1)
 
     def nuclear_potential(self, pos):
         '''Compute the potential of the wf points
