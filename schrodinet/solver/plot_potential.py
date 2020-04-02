@@ -44,7 +44,7 @@ def regular_mesh_3d(xmin=-2, xmax=2, ymin=-2., ymax=2., zmin=-5., zmax=5.,
 class plotter1d(object):
 
     def __init__(self, wf, domain, res=51, sol=None,
-                 plot_weight=False, plot_grad=False, save=None):
+                 plot_weight=False, plot_grad=False, save=None, ymin=None):
         '''Dynamic plot of a 1D-wave function during the optimization
 
         Args:
@@ -72,9 +72,12 @@ class plotter1d(object):
 
         if callable(sol):
             v = sol(self.POS).detach().numpy()
-            self.ax.plot(pos, v, color='#b70000', linewidth=4, linestyle='--',
-                         label='solution')
+            self.ax.plot(pos, v, color='#b70000', linewidth=4, linestyle='--', label='solution')
 
+        elif isinstance(sol,dict):
+            v = np.interp(pos, sol['x'], sol['y'])
+            self.ax.plot(pos, v, color='#b70000', linewidth=4, linestyle='--', label='solution')
+            
         vpot = wf.nuclear_potential(self.POS).detach().numpy()
         self.ax.plot(pos, vpot, color='black', linestyle='--')
 
@@ -91,7 +94,10 @@ class plotter1d(object):
                 self.pgrad, = self.ax.plot(self.wf.rbf.centers.detach().numpy(),
                                            np.zeros(self.wf.ncenter), 'X')
 
-        self.ax.set_ylim((np.min(vpot), 1))
+        if ymin is None:
+            ymin = np.min(vpot)
+        self.ax.set_ylim((ymin, 1))
+
         plt.grid()
         plt.draw()
         self.fig.canvas.flush_events()
@@ -132,7 +138,7 @@ class plotter1d(object):
 
 
 def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
-               ax=None, load=None):
+               ax=None, load=None, ymin = None):
     '''Plot a 1D wave function.
 
     Args:
@@ -184,7 +190,10 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
         pos = net.sample(ntherm=-1)
         ax.hist(pos.detach().numpy(), density=False)
 
-    ax.set_ylim((np.min(pot), 1))
+    if ymin is None:
+        ymin = np.min(pot)
+    ax.set_ylim((ymin, 1))
+    
     ax.grid()
     ax.set_xlabel('X')
     if load is None:
@@ -197,7 +206,7 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
         plt.show()
 
 
-def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
+def plot_results_1d(net, domain, res, sol=None, e0=None, load=None, ymin=None):
     ''' Plot the summary of the results for a 1D problem.
 
     Args:
@@ -213,7 +222,7 @@ def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
     ax0 = fig.add_subplot(211)
     ax1 = fig.add_subplot(212)
 
-    plot_wf_1d(net, domain, res, sol=sol, hist=False, ax=ax0, load=load)
+    plot_wf_1d(net, domain, res, sol=sol, hist=False, ax=ax0, load=load, ymin=ymin)
     plot_observable(net.obs_dict, e0=e0, ax=ax1)
 
     plt.show()

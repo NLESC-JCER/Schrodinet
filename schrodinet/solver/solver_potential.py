@@ -197,3 +197,22 @@ class SolverPotential(SolverBase):
         psi.backward(weight)
 
         return torch.mean(eloc), eloc
+
+    def get_numerical_solution(self,npts=150):
+        """Computes the solution using finite difference
+        
+        Args:
+            npts (int, optional): number of discrete points. Defaults to 100.
+
+        Returns:
+            dict: position and numerical value of the wave function 
+        """
+
+        x = torch.linspace(self.wf.domain['min'],self.wf.domain['max'],npts)
+        dx2 = (x[1]-x[0])**2
+        Vx = np.diag(self.wf.nuclear_potential(x).detach().numpy().flatten())
+        K = -0.5 / dx2.numpy() * ( np.eye(npts,k=1) + np.eye(npts,k=-1) - 2. * np.eye(npts))
+        l, U = np.linalg.eigh(K+Vx)
+        e0 = l[0]
+        sol = np.abs(U[:,0])
+        return x.detach().numpy(), sol/np.max(sol), e0

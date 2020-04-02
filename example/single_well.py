@@ -9,13 +9,13 @@ from schrodinet.solver.plot_potential import plot_results_1d, plotter1d
 
 # def pot_func(pos):
 #     '''H type of thing.'''
-#     k=0.75*1E-1
 #     if isinstance(pos,torch.Tensor):
-#         return -k/(torch.abs(pos)+1E-6) 
+#         return -1./(torch.abs(pos)+1E-6) 
 #     else:
-#         return -k/np.abs(pos) 
+#         return -1./np.abs(pos) 
 
 def pot_func(pos):
+    '''H with pseudo potential BFK'''
     alpha, beta, gamma, delta = 4.47692410, 2.97636451, -4.32112340, 3.01841596
     r = torch.abs(pos)
     pot = -1./r \
@@ -24,12 +24,13 @@ def pot_func(pos):
         gamma * torch.exp(-delta*r**2)
     return pot
 
+
 # box   
-domain, ncenter = {'min': -5., 'max': 5.}, 6
+domain, ncenter = {'min': -5., 'max': 5.}, 11
 
 # wavefunction
-wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=1.)
-# wf.rbf.centers.data = torch.tensor([0.]*6).view(-1,1)
+wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=1., basis='gaussian')
+# wf.rbf.centers.data.fill_(0.)
 # wf.rbf.centers.requires_grad = False
 
 # sampler
@@ -47,10 +48,12 @@ scheduler = optim.lr_scheduler.StepLR(opt, step_size=25, gamma=0.75)
 solver = SolverPotential(wf=wf, sampler=sampler,
                          optimizer=opt, scheduler=scheduler)
 
+# get the numrical solution                         
+x, psi0, e0 = solver.get_numerical_solution()
 
 # train the wave function
-plotter = plotter1d(wf, domain, 100, sol=None)  # , save='./image/')
-solver.run(100, loss='energy-manual', plot=plotter, save='model.pth')
+plotter = plotter1d(wf, domain, 100, sol={'x':x,'y':psi0}, ymin=-2.5)  
+solver.run(300, loss='energy-manual', plot=plotter, save='model.pth')
 
 # plot the final wave function
-plot_results_1d(solver, domain, 100, None, e0=0.5, load='model.pth')
+plot_results_1d(solver, domain, 100, sol={'x':x,'y':psi0}, e0=e0, load='model.pth', ymin=-2.5)
