@@ -56,8 +56,10 @@ class TestHarmonicOscillator1D(unittest.TestCase):
 
         # initiaize the fc layer
         self.solver.wf.fc.weight.data.fill_(0.)
-        self.solver.wf.fc.weight.data[0, 5] = 1.
-        self.solver.wf.sigma = 2.
+        self.solver.wf.fc.weight.data[0, 0] = 1.
+        self.solver.wf.rbf.sigma.data[0] = 1.
+        self.solver.wf.rbf.centers.data.fill_(10.)
+        self.solver.wf.rbf.centers.data[0,0] = 0.
 
         # sample and compute observables
         _, e, v = self.solver.single_point()
@@ -71,8 +73,10 @@ class TestHarmonicOscillator1D(unittest.TestCase):
 
         # initiaize the fc layer
         self.solver.wf.fc.weight.data.fill_(0.)
-        self.solver.wf.fc.weight.data[0, 5] = 1.
-        self.solver.wf.sigma = 2.
+        self.solver.wf.fc.weight.data[0, 0] = 1.
+        self.solver.wf.rbf.sigma.data[0] = 1.
+        self.solver.wf.rbf.centers.data.fill_(10.)
+        self.solver.wf.rbf.centers.data[0,0] = 0.
 
         # sample and compute observables
         pos, e, v = self.solver.single_point()
@@ -94,7 +98,7 @@ class TestHarmonicOscillator1D(unittest.TestCase):
         best_model = torch.load('model.pth')
         self.solver.wf.load_state_dict(best_model['model_state_dict'])
         self.solver.wf.eval()
-
+        print(self.wf.rbf.sigma)
         # sample and compute variables
         pos, e, v = self.solver.single_point()
         assert(e.data.numpy() < 2.5)

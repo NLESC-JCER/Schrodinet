@@ -7,16 +7,16 @@ from schrodinet.solver.solver_potential import SolverPotential
 from schrodinet.solver.plot_potential import plot_results_1d, plotter1d
 
 
-def pot_func(pos):
-    '''H type of thing.'''
-    k=0.75*1E-1
-    if isinstance(pos,torch.Tensor):
-        return -k/(torch.abs(pos)+1E-6) 
-    else:
-        return -k/np.abs(pos) 
+# def pot_func(pos):
+#     '''H type of thing.'''
+#     k=0.75*1E-1
+#     if isinstance(pos,torch.Tensor):
+#         return -k/(torch.abs(pos)+1E-6) 
+#     else:
+#         return -k/np.abs(pos) 
 
 def pot_func(pos):
-    alpha, beta, gamma, delta = 44.7692410, 29.7636451, -43.2112340, 30.1841596
+    alpha, beta, gamma, delta = 4.47692410, 2.97636451, -4.32112340, 3.01841596
     r = torch.abs(pos)
     pot = -1./r \
         + 1./r * torch.exp(-alpha*r**2) \

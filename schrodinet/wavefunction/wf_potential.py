@@ -2,14 +2,14 @@ import torch
 from torch import nn
 
 from schrodinet.wavefunction.wf_base import WaveFunction
-#from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
-from schrodinet.wavefunction.rbf import RBF_Slater as RBF
+from schrodinet.wavefunction.rbf import RBF_Gaussian 
+from schrodinet.wavefunction.rbf import RBF_Slater 
 
 
 class Potential(WaveFunction):
 
     def __init__(self, fpot, domain, ncenter, nelec=1, ndim=1, fcinit=0.1,
-                 sigma=1.):
+                 sigma=1., basis='gaussian'):
         super(Potential, self).__init__(nelec, ndim)
 
         # get the RBF centers
@@ -20,6 +20,13 @@ class Potential(WaveFunction):
         self.ncenter = ncenter[0]
 
         # define the RBF layer
+        if basis == 'gaussian':
+            RBF = RBF_Gaussian
+        elif basis == 'slater':
+            RBF = RBF_Slater
+        else:
+            raise ValueError('basis should be gaussian or slater')
+        
         self.rbf = RBF(self.ndim_tot, self.ncenter,
                        centers=self.centers, sigma=sigma,
                        opt_centers=True,
