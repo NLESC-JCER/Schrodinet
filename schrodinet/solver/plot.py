@@ -107,12 +107,15 @@ class plotter1d(object):
         self.lwf.set_ydata(vp)
 
         if self.plot_weight:
-            self.pweight.set_xdata(self.wf.rbf.centers.detach().numpy())
-            self.pweight.set_ydata(self.wf.fc.weight.detach().numpy().T)
+            self.pweight.set_xdata(
+                self.wf.rbf.centers.detach().numpy())
+            self.pweight.set_ydata(
+                self.wf.fc.weight.detach().numpy().T)
 
         if self.plot_grad:
             if self.wf.fc.weight.requires_grad:
-                self.pgrad.set_xdata(self.wf.rbf.centers.detach().numpy())
+                self.pgrad.set_xdata(
+                    self.wf.rbf.centers.detach().numpy())
                 data = (self.wf.fc.weight.grad.detach().numpy().T)**2
                 data /= np.linalg.norm(data)
                 self.pgrad.set_ydata(data)
@@ -167,7 +170,7 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
     vals = net.wf(X)
     vn = vals.detach().numpy().flatten()
     vn /= np.max(vn)
-    ax.plot(xn, vn, color='black', linewidth=2, label='DeepQMC')
+    ax.plot(xn, vn, color='black', linewidth=2, label='Schrodinet')
 
     if pot:
         pot = net.wf.nuclear_potential(X).detach().numpy()
@@ -213,7 +216,8 @@ def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
     ax0 = fig.add_subplot(211)
     ax1 = fig.add_subplot(212)
 
-    plot_wf_1d(net, domain, res, sol=sol, hist=False, ax=ax0, load=load)
+    plot_wf_1d(net, domain, res, sol=sol,
+               hist=False, ax=ax0, load=load)
     plot_observable(net.obs_dict, e0=e0, ax=ax1)
 
     plt.show()
@@ -291,7 +295,8 @@ class plotter2d(object):
         self.yy = pos[:, 1].reshape(res[0], res[1])
 
         if callable(sol):
-            vs = sol(self.POS).view(self.res[0], self.res[1]).detach().numpy()
+            vs = sol(self.POS).view(
+                self.res[0], self.res[1]).detach().numpy()
             vs /= np.linalg.norm(vs)
             self.ax.plot_wireframe(self.xx, self.yy, vs,
                                    color='black', linewidth=1)
@@ -458,7 +463,8 @@ def plot_wf_3d(net, domain, res, sol=None,
     if hist:
         pos = net.sample().detach().numpy()
         for ielec in range(net.wf.nelec):
-            ax.scatter(pos[:, ielec*3], pos[:, ielec*3+1], pos[:, ielec*3+2])
+            ax.scatter(pos[:, ielec*3],
+                       pos[:, ielec*3+1], pos[:, ielec*3+2])
 
     if callable(sol):
 
