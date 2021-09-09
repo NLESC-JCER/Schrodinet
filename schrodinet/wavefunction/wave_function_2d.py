@@ -5,11 +5,11 @@ from schrodinet.wavefunction.wf_base import WaveFunction
 from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
 
 
-class Potential2D(WaveFunction):
+class WaveFunction2D(WaveFunction):
 
     def __init__(self, fpot, domain, ncenter, nelec=1, ndim=1, fcinit=0.1,
                  sigma=1.):
-        super(Potential2D, self).__init__(nelec, ndim)
+        super(WaveFunction2D, self).__init__(nelec, ndim)
 
         # get the RBF centers
         if not isinstance(ncenter, list):

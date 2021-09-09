@@ -3,8 +3,8 @@ from torch import optim, nn
 
 from schrodinet.sampler.metropolis import Metropolis
 from schrodinet.sampler.hamiltonian import Hamiltonian
-from schrodinet.wavefunction.wf_potential import Potential
-from schrodinet.solver.solver_potential import SolverPotential
+from schrodinet.wavefunction.wave_function_1d import WaveFunction1D
+from schrodinet.solver.solver import Solver
 
 import numpy as np
 import unittest
@@ -26,8 +26,8 @@ class TestHarmonicOscillator1D(unittest.TestCase):
 
         # wavefunction
         domain, ncenter = {'min': -5., 'max': 5.}, 11
-        self.wf = Potential(pot_func, domain, ncenter,
-                            fcinit='random', nelec=1, sigma=2.)
+        self.wf = WaveFunction1D(pot_func, domain, ncenter,
+                                 fcinit='random', nelec=1, sigma=2.)
 
         # sampler
         self.mh_sampler = Metropolis(nwalkers=1000, nstep=2000,
@@ -48,9 +48,9 @@ class TestHarmonicOscillator1D(unittest.TestCase):
             self.opt, step_size=100, gamma=0.75)
 
         # network
-        self.solver = SolverPotential(wf=self.wf, sampler=self.mh_sampler,
-                                      optimizer=self.opt,
-                                      scheduler=self.scheduler)
+        self.solver = Solver(wf=self.wf, sampler=self.mh_sampler,
+                             optimizer=self.opt,
+                             scheduler=self.scheduler)
 
     def test_single_point_metropolis_hasting_sampling(self):
 

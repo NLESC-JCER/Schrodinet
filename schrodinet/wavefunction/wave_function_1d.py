@@ -5,11 +5,11 @@ from schrodinet.wavefunction.wf_base import WaveFunction
 from schrodinet.wavefunction.rbf import RBF_Gaussian as RBF
 
 
-class Potential(WaveFunction):
+class WaveFunction1D(WaveFunction):
 
-    def __init__(self, fpot, domain, ncenter, nelec=1, ndim=1, fcinit=0.1,
+    def __init__(self, fpot, domain, ncenter, nelec=1, ndim=1, fcinit='random',
                  sigma=1.):
-        super(Potential, self).__init__(nelec, ndim)
+        super(WaveFunction1D, self).__init__(nelec, ndim)
 
         # get the RBF centers
         if not isinstance(ncenter, list):
@@ -35,7 +35,7 @@ class Potential(WaveFunction):
             self.fc.weight.data.fill_(fcinit)
 
         # book the potential function
-        self.user_potential = fpot        
+        self.user_potential = fpot
 
     def forward(self, x):
         ''' Compute the value of the wave function.
