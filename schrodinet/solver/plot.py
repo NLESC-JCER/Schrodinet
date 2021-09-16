@@ -44,7 +44,8 @@ def regular_mesh_3d(xmin=-2, xmax=2, ymin=-2., ymax=2., zmin=-5., zmax=5.,
 class plotter1d(object):
 
     def __init__(self, wf, domain, res=51, sol=None,
-                 plot_weight=False, plot_grad=False, save=None):
+                 plot_weight=False, plot_grad=False,
+                 save=None, ylim=None, flow=False):
         '''Dynamic plot of a 1D-wave function during the optimization
 
         Args:
@@ -65,6 +66,7 @@ class plotter1d(object):
         self.plot_grad = plot_grad
         self.save = save
         self.iter = 0
+        self.flow = flow
 
         self.POS = Variable(torch.linspace(
             domain['min'], domain['max'], res).view(res, 1))
@@ -72,15 +74,29 @@ class plotter1d(object):
 
         if callable(sol):
             v = sol(self.POS).detach().numpy()
+            if flow:
+                v = v**2
             self.ax.plot(pos, v, color='#b70000', linewidth=4, linestyle='--',
                          label='solution')
 
         vpot = wf.nuclear_potential(self.POS).detach().numpy()
         self.ax.plot(pos, vpot, color='black', linestyle='--')
 
+        # if flow:
+        #     sample = self.wf.flow.sample([res])
+        #     vp = self.wf.flow.prob(sample).detach().numpy()
+        # else:
+
         vp = self.wf(self.POS).detach().numpy()
         vp /= np.max(vp)
+
         self.lwf, = self.ax.plot(pos, vp, linewidth=2, color='black')
+
+        if flow:
+            base = torch.exp(self.wf.flow.base_dist.log_prob(
+                self.POS).detach()).numpy()
+            self.lbase, = self.ax.plot(
+                pos, base, linewidth=1, color='grey')
 
         if self.plot_weight:
             self.pweight, = self.ax.plot(self.wf.rbf.centers.detach().numpy(),
@@ -91,7 +107,9 @@ class plotter1d(object):
                 self.pgrad, = self.ax.plot(self.wf.rbf.centers.detach().numpy(),
                                            np.zeros(self.wf.ncenter), 'X')
 
-        self.ax.set_ylim((np.min(vpot), 1))
+        if ylim is None:
+            ylim = (np.min(vpot), 1)
+        self.ax.set_ylim(ylim)
         plt.grid()
         plt.draw()
         self.fig.canvas.flush_events()
@@ -102,9 +120,21 @@ class plotter1d(object):
     def drawNow(self):
         '''Update the plot.'''
 
+        # if self.flow:
+        #     sample = self.wf.flow.sample([self.res])
+        #     vp = self.wf.flow.prob(sample).detach().numpy()
+        #     vp /= np.max(vp)
+        #     self.lwf.set_ydata(vp)
+        #     self.lwf.set_xdata(sample.detach().numpy())
+        # else:
         vp = self.wf(self.POS).detach().numpy()
         vp /= np.max(vp)
         self.lwf.set_ydata(vp)
+
+        if self.flow:
+            base = torch.exp(self.wf.flow.base_dist.log_prob(
+                self.POS)).detach().numpy()
+            self.lbase.set_ydata(base)
 
         if self.plot_weight:
             self.pweight.set_xdata(

@@ -38,16 +38,15 @@ solver = Solver(wf=wf, sampler=sampler,
                 optimizer=opt, scheduler=scheduler)
 
 
-pos = solver.sample()
-ref = wf.kinetic_energy(pos)
-val = wf.kinetic_energy_density(pos)
+# pos = solver.sample()
+# ref = wf.kinetic_energy(pos)
+# val = wf.kinetic_energy_density(pos)
 
-print(ref)
-print(val)
-# # train the wave function
-# plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)
-# solver.run(300, loss='energy-manual', plot=plotter, save='model.pth')
 
-# # plot the final wave function
-# plot_results_1d(solver, domain, 100, ho1d_sol,
-#                 e0=0.5, load='model.pth')
+# train the wave function
+plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)
+solver.run(300, loss='energy-manual', plot=plotter, save='model.pth')
+
+# plot the final wave function
+plot_results_1d(solver, domain, 100, ho1d_sol,
+                e0=0.5, load='model.pth')

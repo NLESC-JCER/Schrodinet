@@ -59,9 +59,6 @@ class FlowSolver(object):
         # get the loss
         self.loss = Loss(self.wf, method=loss)
 
-        # clipper for the fc weights
-        clipper = ZeroOneClipper()
-
         cumulative_loss = []
         min_loss = 1E3
 
@@ -79,6 +76,7 @@ class FlowSolver(object):
                     lpos, self.loss.method)
                 cumulative_loss += loss
                 self.opt.step()
+                self.wf.flow.clear_cache()
 
             if plot is not None:
                 plot.drawNow()
@@ -163,7 +161,7 @@ class FlowSolver(object):
 
         # compute local energy and wf values
         psi = self.wf(lpos)
-        eloc = self.wf.local_energy(lpos, wf=psi)
+        eloc = self.wf.local_energy(lpos)
         norm = 1./len(psi)
 
         # evaluate the prefactor of the grads

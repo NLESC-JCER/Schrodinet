@@ -69,6 +69,21 @@ class Flow(dist.TransformedDistribution):
 
         return val.view(-1, 1), grad_val, hess_val
 
+    def _get_numerical_derivatives(self, x, eps=1E-4):
+
+        # detach pos
+        x = x.detach()
+        x = x.repeat(1, 3) + torch.as_tensor([0, eps, -eps])
+        shape = x.shape
+
+        all_val = self.prob(x.reshape(-1, 1)).reshape(*shape)
+
+        val = all_val[:, 0]
+        grad_val = 0.5/eps * (all_val[:, 1]-all_val[:, 2])
+        hess_val = 1./eps/eps * \
+            (all_val[:, 1]+all_val[:, 2]-2*all_val[:, 0])
+        return val.view(-1, 1), grad_val, hess_val
+
 
 class WaveFunctionFlow1D(WaveFunction):
 
@@ -80,13 +95,8 @@ class WaveFunctionFlow1D(WaveFunction):
         # book the potential function
         self.user_potential = fpot
 
-    def forward(self, nsample):
-
-        # get sampling point
-        pos = self.flow.sample([nsample])
-
-        # score
-        return self.flow.prob(pos)
+    def forward(self, pos):
+        return self.flow.prob(pos).view(-1, 1)
 
     def local_energy(self, pos):
         ''' local energy of the sampling points.'''
@@ -100,7 +110,8 @@ class WaveFunctionFlow1D(WaveFunction):
 
     def kinetic_energy(self, pos):
 
-        rho, grad_rho, hess_rho = self.flow._get_derivatives(pos)
+        rho, grad_rho, hess_rho = self.flow._get_derivatives(
+            pos)
         inv_half_rho = 0.5/rho
         return -0.5*(inv_half_rho * hess_rho - (inv_half_rho * grad_rho)**2)
 
