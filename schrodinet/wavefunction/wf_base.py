@@ -61,7 +61,8 @@ class WaveFunction(nn.Module):
         elif self.kinetic == 'fd':
             return self.kinetic_energy_finite_difference(pos)
         else:
-            raise ValueError('kinetic %s not recognized' % self.kinetic)
+            raise ValueError(
+                'kinetic %s not recognized' % self.kinetic)
 
     def kinetic_energy_autograd(self, pos, out=None):
         '''Compute the second derivative of the network
@@ -96,16 +97,13 @@ class WaveFunction(nn.Module):
             tmp = grad(jacob[:, idim], pos,
                        grad_outputs=z,
                        only_inputs=True,
-                       # create_graph is REQUIRED and
-                       # is causing memory issues
-                       # for large systems
                        create_graph=True)[0]
 
             hess += tmp[:, idim]
 
-        return -0.5 * hess.view(-1, 1)
+        return -0.5 * hess.view(-1, 1) / out
 
-    def kinetic_energy_finite_difference(self, pos, eps=1E-3):
+    def kinetic_energy_finite_difference(self, pos, eps=1E-3, out=None):
         '''Compute the second derivative of the network
         output w.r.t the value of the input using finite difference.
 
@@ -119,9 +117,13 @@ class WaveFunction(nn.Module):
             values of nabla^2 * Psi
         '''
 
+        print('autograd kinetic energy')
+        if out is None:
+            out = self.forward(pos)
+
         nwalk = pos.shape[0]
         ndim = pos.shape[1]
-        out = torch.zeros(nwalk, 1)
+        hess = torch.zeros(nwalk, 1)
 
         for icol in range(ndim):
 
@@ -136,9 +138,44 @@ class WaveFunction(nn.Module):
             pos_tmp[:, icol] -= eps
             feps += self.forward(pos_tmp)
 
-            out += feps/(eps**2)
+            hess += feps/(eps**2)
 
-        return -0.5*out.view(-1, 1)
+        return -0.5*hess.view(-1, 1) / out
+
+    def kinetic_energy_density(self, pos, rho=None):
+        """Compute the kinetic energy term from the density
+
+        Args:
+            pos ([type]): [description]
+            rho ([type], optional): [description]. Defaults to None.
+        """
+
+        if rho is None:
+            rho = self.pdf(pos)
+
+        # compute the jacobian
+        z = Variable(torch.ones(rho.shape))
+        grad_rho = grad(rho, pos,
+                        grad_outputs=z,
+                        only_inputs=True,
+                        create_graph=True)[0]
+
+        # compute the diagonal element of the Hessian
+        z = Variable(torch.ones(grad_rho.shape[0]))
+        hess_rho = torch.zeros(grad_rho.shape[0])
+
+        for idim in range(grad_rho.shape[1]):
+
+            tmp = grad(grad_rho[:, idim], pos,
+                       grad_outputs=z,
+                       only_inputs=True,
+                       create_graph=True)[0]
+
+            hess_rho += tmp[:, idim]
+
+        hess_rho = hess_rho.view(-1, 1)
+        inv_half_rho = (0.5/rho).view(-1, 1)
+        return -0.5 * (inv_half_rho * hess_rho - (inv_half_rho * grad_rho)**2)
 
     def local_energy(self, pos, wf=None):
         ''' local energy of the sampling points.'''
@@ -148,7 +185,7 @@ class WaveFunction(nn.Module):
 
         ke = self.kinetic_energy(pos, out=wf)
 
-        return ke/wf \
+        return ke \
             + self.nuclear_potential(pos)  \
             + self.electronic_potential(pos) \
             + self.nuclear_repulsion()

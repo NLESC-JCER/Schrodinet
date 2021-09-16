@@ -19,7 +19,7 @@ class Metropolis(SamplerBase):
         SamplerBase.__init__(self, nwalkers, nstep,
                              step_size, nelec, ndim, init)
 
-    def generate(self, pdf, ntherm=10, ndecor=100, pos=None,
+    def generate(self, pdf, ntherm=-1, ndecor=0, pos=None,
                  with_tqdm=True):
         """Generate a series of point using MC sampling
 
