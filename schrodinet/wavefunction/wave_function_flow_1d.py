@@ -42,34 +42,6 @@ class GaussianTransform(dist.transforms.Transform):
         return 4/torch.sqrt(np.pi)*torch.exp(-x**2) * (2*x**2-1)
 
 
-class Uniform(dist.Uniform):
-
-    def __init__(self, low, high):
-        super(Uniform, self).__init__(low, high)
-
-    def prob(x, derivative=0):
-        if derivative == 0:
-            return torch.exp(super().log_prob(x))
-        elif derivative == 1:
-            return torch.zeros(x.shape)
-        elif derivative == 2:
-            return torch.zeros(x.shape)
-
-
-class Normal(dist.Normal):
-
-    def __init__(self, mu, sigma):
-        super(Normal, self).__init__(mu, sigma)
-
-    def prob(x, derivative=0):
-        if derivative == 0:
-            return torch.exp(super().log_prob(x))
-        elif derivative == 1:
-            return None
-        elif derivative == 2:
-            return None
-
-
 class Flow(dist.TransformedDistribution):
 
     def __init__(self, base_dist, transforms):
@@ -92,7 +64,7 @@ class Flow(dist.TransformedDistribution):
         grad_val = x.grad.clone()
 
         # compute second derivative
-        x.grad.backward(torch.ones_like(x.grad))
+        x.grad.backward(torch.ones_like(x.grad), create_graph=True)
         hess_val = x.grad
 
         return val.view(-1, 1), grad_val, hess_val
@@ -162,17 +134,3 @@ class WaveFunctionFlow1D(WaveFunction):
         Returns: values of Vee * psi
         '''
         return 0
-
-
-if __name__ == "__main__":
-
-    import matplotlib.pyplot as plt
-    # uni = Uniform(-5., 5.)
-    # gt = GaussianTransform(torch.tensor([0.]), torch.tensor([1.]))
-    # affine_trans = dist.transforms.AffineTransform(loc=3, scale=0.5)
-
-    # x = uni.sample([1000])
-    # target = dist.TransformedDistribution(uni, [gt, affine_trans])
-    # y = target.sample([10000])
-    # plt.hist(y.numpy(), bins=50)
-    # plt.show()
