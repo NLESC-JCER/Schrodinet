@@ -45,7 +45,7 @@ class plotter1d(object):
 
     def __init__(self, wf, domain, res=51, sol=None,
                  plot_weight=False, plot_grad=False,
-                 save=None, ylim=None, flow=False):
+                 save=None, ylim=None, xlim=None, flow=False):
         '''Dynamic plot of a 1D-wave function during the optimization
 
         Args:
@@ -82,13 +82,20 @@ class plotter1d(object):
         vpot = wf.nuclear_potential(self.POS).detach().numpy()
         self.ax.plot(pos, vpot, color='black', linestyle='--')
 
-        # if flow:
-        #     sample = self.wf.flow.sample([res])
-        #     vp = self.wf.flow.prob(sample).detach().numpy()
-        # else:
+        if flow:
+            sample = self.wf.flow.sample([res])
+            vp = self.wf.flow.prob(sample)
+            sample = sample.flatten()
+            _, idx = torch.sort(sample)
 
-        vp = self.wf(self.POS).detach().numpy()
-        vp /= np.max(vp)
+            pos = (sample[idx]).squeeze().squeeze().detach().numpy()
+            vp = (vp[idx]).squeeze().detach().numpy()
+            vp /= np.max(vp)
+
+        else:
+
+            vp = self.wf(self.POS).detach().numpy()
+            vp /= np.max(vp)
 
         self.lwf, = self.ax.plot(pos, vp, linewidth=2, color='black')
 
@@ -96,7 +103,7 @@ class plotter1d(object):
             base = torch.exp(self.wf.flow.base_dist.log_prob(
                 self.POS).detach()).numpy()
             self.lbase, = self.ax.plot(
-                pos, base, linewidth=1, color='grey')
+                self.POS, base, linewidth=1, color='grey')
 
         if self.plot_weight:
             self.pweight, = self.ax.plot(self.wf.rbf.centers.detach().numpy(),
@@ -110,6 +117,9 @@ class plotter1d(object):
         if ylim is None:
             ylim = (np.min(vpot), 1)
         self.ax.set_ylim(ylim)
+        if xlim is None:
+            xlim = (-5, 5)
+        self.ax.set_xlim(xlim)
         plt.grid()
         plt.draw()
         self.fig.canvas.flush_events()
@@ -120,16 +130,23 @@ class plotter1d(object):
     def drawNow(self):
         '''Update the plot.'''
 
-        # if self.flow:
-        #     sample = self.wf.flow.sample([self.res])
-        #     vp = self.wf.flow.prob(sample).detach().numpy()
-        #     vp /= np.max(vp)
-        #     self.lwf.set_ydata(vp)
-        #     self.lwf.set_xdata(sample.detach().numpy())
-        # else:
-        vp = self.wf(self.POS).detach().numpy()
-        vp /= np.max(vp)
-        self.lwf.set_ydata(vp)
+        if self.flow:
+            sample = self.wf.flow.sample([self.res])
+
+            vp = self.wf.flow.prob(sample)
+            sample = sample.flatten()
+            vals, idx = torch.sort(sample.detach())
+
+            sample = (sample[idx]).squeeze()
+            vp = (vp[idx]).squeeze().detach().numpy()
+
+            vp /= np.max(vp)
+            self.lwf.set_ydata(vp)
+            self.lwf.set_xdata(sample.detach().numpy())
+        else:
+            vp = self.wf(self.POS).detach().numpy()
+            vp /= np.max(vp)
+            self.lwf.set_ydata(vp)
 
         if self.flow:
             base = torch.exp(self.wf.flow.base_dist.log_prob(
@@ -165,7 +182,7 @@ class plotter1d(object):
 
 
 def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
-               ax=None, load=None):
+               ax=None, load=None, flow=False):
     '''Plot a 1D wave function.
 
     Args:
@@ -194,13 +211,30 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
 
     if callable(sol):
         vs = sol(X).detach().numpy()
+        if flow:
+            vs = vs**2
         ax.plot(xn, vs, color='#b70000', linewidth=4,
                 linestyle='--', label='solution')
 
-    vals = net.wf(X)
-    vn = vals.detach().numpy().flatten()
-    vn /= np.max(vn)
-    ax.plot(xn, vn, color='black', linewidth=2, label='Schrodinet')
+    if flow:
+        sample = net.wf.flow.sample([res])
+        vp = net.wf.flow.prob(sample)
+        sample = sample.flatten()
+        _, idx = torch.sort(sample)
+
+        pos = (sample[idx]).squeeze().squeeze().detach().numpy()
+        vp = (vp[idx]).squeeze().detach().numpy()
+        vp /= np.max(vp)
+
+        ax.plot(pos, vp, color='black',
+                linewidth=2, label='Schrodinet')
+
+    else:
+        vals = net.wf(X)
+        vn = vals.detach().numpy().flatten()
+        vn /= np.max(vn)
+        ax.plot(xn, vn, color='black',
+                linewidth=2, label='Schrodinet')
 
     if pot:
         pot = net.wf.nuclear_potential(X).detach().numpy()
@@ -230,7 +264,7 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
         plt.show()
 
 
-def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
+def plot_results_1d(net, domain, res, sol=None, e0=None, load=None, flow=False):
     ''' Plot the summary of the results for a 1D problem.
 
     Args:
@@ -247,7 +281,7 @@ def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
     ax1 = fig.add_subplot(212)
 
     plot_wf_1d(net, domain, res, sol=sol,
-               hist=False, ax=ax0, load=load)
+               hist=False, ax=ax0, load=load, flow=flow)
     plot_observable(net.obs_dict, e0=e0, ax=ax1)
 
     plt.show()

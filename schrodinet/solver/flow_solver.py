@@ -45,16 +45,16 @@ class FlowSolver(object):
         self.save_model = save
 
         # sample the wave function
-        pos = self.wf.flow.sample([nsample]).detach()
+        pos = self.wf.flow.sample([nsample])  # .detach()
 
-        # determine the batching mode
-        if batchsize is None:
-            batchsize = len(pos)
+        # # determine the batching mode
+        # if batchsize is None:
+        #     batchsize = len(pos)
 
-        # create the data loader
-        self.dataset = DataSet(pos)
-        self.dataloader = DataLoader(
-            self.dataset, batch_size=batchsize)
+        # # create the data loader
+        # self.dataset = DataSet(pos)
+        # self.dataloader = DataLoader(
+        #     self.dataset, batch_size=batchsize)
 
         # get the loss
         self.loss = Loss(self.wf, method=loss)
@@ -67,16 +67,16 @@ class FlowSolver(object):
             print('epoch %d' % n)
 
             cumulative_loss = 0
-            for ibatch, data in enumerate(self.dataloader):
+            # for ibatch, data in enumerate(self.dataloader):
 
-                lpos = Variable(data)
-                lpos.requires_grad = True
+            # lpos = Variable(data)
+            # lpos.requires_grad = True
 
-                loss, eloc = self.evaluate_gradient(
-                    lpos, self.loss.method)
-                cumulative_loss += loss
-                self.opt.step()
-                self.wf.flow.clear_cache()
+            loss, eloc = self.evaluate_gradient(
+                pos, self.loss.method)
+            cumulative_loss += loss
+            self.opt.step()
+            self.wf.flow.clear_cache()
 
             if plot is not None:
                 plot.drawNow()
@@ -87,7 +87,7 @@ class FlowSolver(object):
 
             # get the observalbes
             self.get_observable(
-                self.obs_dict, pos, eloc, ibatch=ibatch)
+                self.obs_dict, pos, eloc, ibatch=0)
             self.print_observable(cumulative_loss)
 
             print('----------------------------------------')
@@ -95,7 +95,7 @@ class FlowSolver(object):
             # resample the data
             if (n % resample_every == 0) or (n == nepoch-1):
                 pos = self.wf.flow.sample([nsample])
-                self.dataloader.dataset.data = pos
+                # self.dataloader.dataset.data = pos
 
             if self.scheduler is not None:
                 self.scheduler.step()

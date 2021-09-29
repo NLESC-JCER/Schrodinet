@@ -7,6 +7,7 @@ from schrodinet.wavefunction.wave_function_1d import WaveFunction1D
 import pyro.distributions as dist
 from torch.distributions import constraints
 import pyro.distributions.transforms as T
+from normflow.core import NormalizingFlow
 
 
 class GaussianTransform(dist.transforms.Transform):
@@ -41,6 +42,48 @@ class GaussianTransform(dist.transforms.Transform):
     def third_derivative(self, x):
         return 4/torch.sqrt(np.pi)*torch.exp(-x**2) * (2*x**2-1)
 
+    def parameters(self):
+        return [self.mu, self. alpha]
+
+
+class NFlow(NormalizingFlow):
+
+    def __init__(self, base, transforms):
+        super().__init__(base, transforms)
+        self.base_dist = self.q0
+
+    def prob(self, x):
+        return torch.exp(self.log_prob(x.flatten()))
+
+    def _get_derivatives(self, x):
+
+        # detach pos
+        x = x.detach()
+        x.requires_grad = True
+
+        # compute prob
+        val = self.prob(x)
+
+        # compute grad of prob
+        val.backward(torch.ones_like(val), create_graph=True)
+        grad_val = x.grad.clone()
+
+        # compute second derivative
+        x.grad.backward(torch.ones_like(x.grad), create_graph=True)
+        hess_val = x.grad-grad_val
+
+        return val.view(-1, 1), grad_val, hess_val
+
+    def sample(self, num_samples):
+
+        if isinstance(num_samples, list):
+            if len(num_samples) == 1:
+                return super().sample(num_samples[0])[0]
+            else:
+                raise ValueError('bla')
+        else:
+            return super().sample(num_samples)[0]
+
 
 class Flow(dist.TransformedDistribution):
 
@@ -65,11 +108,11 @@ class Flow(dist.TransformedDistribution):
 
         # compute second derivative
         x.grad.backward(torch.ones_like(x.grad), create_graph=True)
-        hess_val = x.grad
+        hess_val = x.grad-grad_val
 
         return val.view(-1, 1), grad_val, hess_val
 
-    def _get_numerical_derivatives(self, x, eps=1E-4):
+    def _get_numerical_derivatives(self, x, eps=1E-6):
 
         # detach pos
         x = x.detach()
@@ -82,7 +125,7 @@ class Flow(dist.TransformedDistribution):
         grad_val = 0.5/eps * (all_val[:, 1]-all_val[:, 2])
         hess_val = 1./eps/eps * \
             (all_val[:, 1]+all_val[:, 2]-2*all_val[:, 0])
-        return val.view(-1, 1), grad_val, hess_val
+        return val.view(-1, 1), grad_val.view(-1, 1), hess_val.view(-1, 1)
 
 
 class WaveFunctionFlow1D(WaveFunction):
@@ -112,7 +155,9 @@ class WaveFunctionFlow1D(WaveFunction):
 
         rho, grad_rho, hess_rho = self.flow._get_derivatives(
             pos)
+
         inv_half_rho = 0.5/rho
+
         return -0.5*(inv_half_rho * hess_rho - (inv_half_rho * grad_rho)**2)
 
     def pdf(self, pos):
