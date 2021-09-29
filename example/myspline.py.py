@@ -21,8 +21,6 @@ from torch.autograd import grad, Variable
 from pyro.distributions.transforms.spline import ConditionedSpline
 from pyro.distributions.torch_transform import TransformModule
 
-import normflow as nf
-
 
 class MySpline(ConditionedSpline, TransformModule):
     r"""

@@ -22,8 +22,6 @@ from torch.autograd import grad, Variable
 from pyro.distributions.transforms.spline import ConditionedSpline
 from pyro.distributions.torch_transform import TransformModule
 
-import normflow as nf
-
 
 # create the potential
 def pot_func(pos):
