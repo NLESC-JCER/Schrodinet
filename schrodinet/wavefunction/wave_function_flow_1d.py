@@ -7,7 +7,7 @@ from schrodinet.wavefunction.wave_function_1d import WaveFunction1D
 import pyro.distributions as dist
 from torch.distributions import constraints
 import pyro.distributions.transforms as T
-from normflow.core import NormalizingFlow
+from normflows.core import NormalizingFlow
 
 
 class GaussianTransform(dist.transforms.Transform):
