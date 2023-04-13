@@ -19,7 +19,7 @@ class ErfTransform(T.Transform):
         return torch.erfinv(x)
 
     def _inverse(self, y):
-        return torch.erf(x)
+        return torch.erf(y)
 
     def log_abs_det_jacobian(self, x, y):
         return x**2
