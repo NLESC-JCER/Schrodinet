@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_observable(obs_dict, e0=None, ax=None):
+def plot_observable(obs_dict, e0=None, ax=None, xlim=None, ylim=None):
     '''Plot the observable selected.
 
     Args:
@@ -32,13 +32,18 @@ def plot_observable(obs_dict, e0=None, ax=None):
 
     # plot
     ax.fill_between(epoch, emin, emax, alpha=0.5, color='#4298f4')
-    ax.plot(epoch, energy, color='#144477')
+    ax.plot(epoch, energy, lw=2, color='#144477')
     if e0 is not None:
         ax.axhline(e0, color='black', linestyle='--')
 
     ax.grid()
-    ax.set_xlabel('Number of epoch')
+    ax.set_xlabel('Number of epochs')
     ax.set_ylabel('Energy')
+
+    if xlim is not None:
+        ax.set_xlim(xlim)
+    if ylim is not None:
+        ax.set_ylim(ylim)
 
     if show_plot:
         plt.show()

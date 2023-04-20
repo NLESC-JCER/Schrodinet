@@ -3,7 +3,21 @@
 ![Build Status](https://travis-ci.com/NLESC-JCER/Schrodinet.svg?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/38b540ecc5464901a5a48a9be037c924)](https://app.codacy.com/gh/NLESC-JCER/Schrodinet?utm_source=github.com&utm_medium=referral&utm_content=NLESC-JCER/Schrodinet&utm_campaign=Badge_Grade_Dashboard)
 
-Solving the Schrodinger equations in 1, 2 or 3D  using quantum monte carlo and radial basis function neural network to encode the wavefunction.
+Quantum Monte-Carlo Simulations of one-dimensional problem using Radial Basis Functions Neural Networks.
+<p align="center">
+<img src="./pics/morse.gif" title="Optimization of the wave function">
+</p>
+
+
+## Installation
+
+Clone the repo and `pip` insatll the code
+
+```
+git clone https://github.com/NLESC-JCER/Schrodinet/
+cd Schrodinet
+pip install .
+```
 
 ## Harmonic Oscillator in 1D
 
@@ -28,7 +42,6 @@ def ho1d_sol(pos):
     return torch.exp(-0.5*pos**2)
 
 # Define the domain and the number of RBFs
-domain, ncenter = {'min': -5., 'max': 5.}, 11
 
 # wavefunction
 wf = Potential(pot_func, domain, ncenter, fcinit='random', nelec=1, sigma=0.5)
@@ -47,7 +60,7 @@ solver = SolverPotential(wf=wf, sampler=sampler,
                          optimizer=opt, scheduler=scheduler)
 
 # Train the wave function
-plotter = plotter1d(wf, domain, 100, sol=ho1d_sol) 
+plotter = plotter1d(wf, domain, 100, sol=ho1d_sol)
 solver.run(300, loss='variance', plot=plotter, save='model.pth')
 
 # Plot the final wave function

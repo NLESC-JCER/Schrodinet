@@ -2,7 +2,7 @@ import os
 import torch
 from torch.autograd import Variable
 import numpy as np
-
+import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib import cm
 try:
@@ -107,12 +107,15 @@ class plotter1d(object):
         self.lwf.set_ydata(vp)
 
         if self.plot_weight:
-            self.pweight.set_xdata(self.wf.rbf.centers.detach().numpy())
-            self.pweight.set_ydata(self.wf.fc.weight.detach().numpy().T)
+            self.pweight.set_xdata(
+                self.wf.rbf.centers.detach().numpy())
+            self.pweight.set_ydata(
+                self.wf.fc.weight.detach().numpy().T)
 
         if self.plot_grad:
             if self.wf.fc.weight.requires_grad:
-                self.pgrad.set_xdata(self.wf.rbf.centers.detach().numpy())
+                self.pgrad.set_xdata(
+                    self.wf.rbf.centers.detach().numpy())
                 data = (self.wf.fc.weight.grad.detach().numpy().T)**2
                 data /= np.linalg.norm(data)
                 self.pgrad.set_ydata(data)
@@ -131,8 +134,9 @@ class plotter1d(object):
         self.iter += 1
 
 
-def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
-               ax=None, load=None):
+def plot_wf_1d(net, domain, res, grad=False,
+               hist=False, pot=True, sol=None,
+               gaussians=True, ax=None, load=None):
     '''Plot a 1D wave function.
 
     Args:
@@ -161,13 +165,13 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
 
     if callable(sol):
         vs = sol(X).detach().numpy()
-        ax.plot(xn, vs, color='#b70000', linewidth=4,
+        ax.plot(xn, vs, color='grey', linewidth=2,
                 linestyle='--', label='solution')
 
     vals = net.wf(X)
     vn = vals.detach().numpy().flatten()
     vn /= np.max(vn)
-    ax.plot(xn, vn, color='black', linewidth=2, label='DeepQMC')
+    ax.plot(xn, vn, color='black', linewidth=2, label='Schrodinet')
 
     if pot:
         pot = net.wf.nuclear_potential(X).detach().numpy()
@@ -184,20 +188,34 @@ def plot_wf_1d(net, domain, res, grad=False, hist=False, pot=True, sol=None,
         pos = net.sample(ntherm=-1)
         ax.hist(pos.detach().numpy(), density=False)
 
-    ax.set_ylim((np.min(pot), 1))
-    ax.grid()
+    if gaussians:
+        rbfs = net.wf.rbf(X)
+        rbfs *= net.wf.fc.weight
+        rbfs = rbfs.T
+
+        line_colors = pl.cm.rainbow(np.linspace(0, 1, len(rbfs)))
+
+        for y, c in zip(rbfs, line_colors):
+            ax.plot(xn, y.detach().numpy(), color=c)
+            ax.fill_between(xn, y.detach().numpy(),
+                            alpha=0.1, color=c)
+
+    ax.set_ylim((np.min(pot)-0.05, 1.25))
+
+    ax.axis('off')
     ax.set_xlabel('X')
     if load is None:
         ax.set_ylabel('Wavefuntion')
     else:
         ax.set_ylabel('Wavefuntion %d epoch' % epoch)
-    ax.legend()
 
     if show_plot:
         plt.show()
 
 
-def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
+def plot_results_1d(net, domain, res, iter=None,
+                    sol=None, e0=None, load=None,
+                    xlim=None, ylim=None):
     ''' Plot the summary of the results for a 1D problem.
 
     Args:
@@ -213,10 +231,16 @@ def plot_results_1d(net, domain, res, sol=None, e0=None, load=None):
     ax0 = fig.add_subplot(211)
     ax1 = fig.add_subplot(212)
 
-    plot_wf_1d(net, domain, res, sol=sol, hist=False, ax=ax0, load=load)
-    plot_observable(net.obs_dict, e0=e0, ax=ax1)
+    plot_wf_1d(net, domain, res, sol=sol,
+               hist=False, ax=ax0, load=load)
+    plot_observable(net.obs_dict, e0=e0, ax=ax1,
+                    xlim=xlim, ylim=ylim)
 
-    plt.show()
+    if iter is not None:
+        fname = 'image/image_%03d.png' % iter
+        plt.savefig(fname)
+    else:
+        plt.show()
 
 
 ##############################################################################
@@ -291,7 +315,8 @@ class plotter2d(object):
         self.yy = pos[:, 1].reshape(res[0], res[1])
 
         if callable(sol):
-            vs = sol(self.POS).view(self.res[0], self.res[1]).detach().numpy()
+            vs = sol(self.POS).view(
+                self.res[0], self.res[1]).detach().numpy()
             vs /= np.linalg.norm(vs)
             self.ax.plot_wireframe(self.xx, self.yy, vs,
                                    color='black', linewidth=1)
@@ -458,7 +483,8 @@ def plot_wf_3d(net, domain, res, sol=None,
     if hist:
         pos = net.sample().detach().numpy()
         for ielec in range(net.wf.nelec):
-            ax.scatter(pos[:, ielec*3], pos[:, ielec*3+1], pos[:, ielec*3+2])
+            ax.scatter(pos[:, ielec*3],
+                       pos[:, ielec*3+1], pos[:, ielec*3+2])
 
     if callable(sol):
 
